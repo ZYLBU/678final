@@ -3,8 +3,8 @@ title: "678 Final project"
 author: "Ziyang Lin"
 date: "2022-12-05"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ## Abstract
@@ -144,7 +144,7 @@ Except genres, there are other grouping variables like publisher, developer and 
 
 EDA genre's distribution numerically.
 
-```{r}
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
 CD %>% group_by(Genre) %>% 
   summarise(mean = mean(as.numeric(User_Score)), 
             SD = mean(as.numeric(User_Score)))
@@ -179,7 +179,7 @@ plot(lmod)
 ```
 
 Summary for multilevel model.
-```{r}
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
 summary(Mmod1)
 summary(Mmod2)
 summary(Mmod3)
