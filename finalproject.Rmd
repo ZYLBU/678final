@@ -100,6 +100,7 @@ CD %>%
   geom_smooth(method = glm) +
   ggtitle("Figure3: Predictions of score based on genre and global sales") +
   labs(x="User Count", y="User Score difference", color = "Genre") 
+  summary(Mmod1)
   
  
 
@@ -115,7 +116,7 @@ CD %>%
   geom_smooth(method = glm) +
   ggtitle("Figure4: Predictions of score based on genre") +
   labs(x="User Count", y="User Score difference", color = "Genre")
-  
+  summary(Mmod2)
 
 ```
 
@@ -129,7 +130,7 @@ CD %>%
   geom_smooth(method = glm) +
   ggtitle("Figure5: Predictions of random slope model") +
   labs(x="User Count", y="User Score difference", color = "Genre")
-  
+  summary(Mmod3)
 
 ```
 
@@ -178,10 +179,5 @@ summary(lmod)
 plot(lmod)
 ```
 
-Summary for multilevel model.
-```{r,echo=FALSE, message=FALSE, warning=FALSE}
-summary(Mmod1)
-summary(Mmod2)
-summary(Mmod3)
-```
+
 
