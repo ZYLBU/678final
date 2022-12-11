@@ -1,0 +1,187 @@
+---
+title: "678 Final project"
+author: "Ziyang Lin"
+date: "2022-12-05"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Abstract
+
+Dataset utilized in this project is called 'video game sales with ratings'. Different types of data are included like platform, year of release, ratings, sales for different regions and genre which consists of more than 10 groups. This project applies model analysis like linear model and multilevel model to figure out the relationship between variables and scores.
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+library(ggplot2)
+library(lme4)
+library(tidyverse)
+library(knitr)
+D <- read.csv("https://raw.githubusercontent.com/ZYLBU/MA678-final-project/main/Video_Games_Sales_as_at_22_Dec_2016.csv")
+CD = na.omit(D)
+```
+
+## Introduction
+
+This dataset is motivated by Gregory Smith's web scrape of VGChartz Video Games Sales, which extends the number of variables with another web scrape from Metacritic. Total 16719 games are recorded. However, there are missing observations as Metacritic only covers a subset of the platforms. Also, a game may not have all the observations of the additional variables discussed below. Completed cases are about 7,000 after I deleted the NA and missing values. I used both linear and multilevel model to analyze how some of the variables affect the user scores of the game and compared the results.
+
+Explanations for the variables are listed:
+
+Name: Name of the game Platform: Platforms for the game
+
+Year_of_Release: release year of the game
+
+Genre: Main type of the game
+
+Publisher: Companies who published the game
+
+NA_Sales: Sales in North America
+
+EU_Sales: Sales in Europe
+
+JP_Sales: Sales in Japan
+
+Other_Sales: Sales in other regions
+
+Global_Sales: Sales in the whole world
+
+Critic_Score: Aggregate score compiled by Metacritic staff
+
+Critic_Count: The number of critics used in coming up with the Critic_Score
+
+User_Score: Score by Metacritic's subscribers
+
+User_Count: Number of users who gave the userscore
+
+Developer: Party responsible for creating the game
+
+Rating: The ESRB ratings
+
+## Method
+
+Before the modeling and analysis, some exploratory data analysis will be helpful to understand the data. Figure 1 is a visualization of different genres. Figure 2 shows the detailed relationship among User Score, User Count and Genre. From the plot, we could conclude that some genres, like shooter, have a lot of users and comparatively high sales globally, however the user score is low. Others like racing, has low sales and less users, however, the user score is high. This situation raises my interest to explore the data more.
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = CD)+
+  geom_bar(mapping = aes(x = Genre, fill= Genre)) +
+   ggtitle("Figure1: Number of Genres") +
+  xlab("Name of Genres") + ylab("Number")
+```
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = CD, mapping = aes(x = as.numeric(User_Score), y = Global_Sales)) +
+ geom_point(aes(size = User_Count , color=Genre)) +
+  ggtitle("Figure2: Relationship among User Score, User Count and Genre") +
+  xlab("User Score") + ylab("Global Sales")
+```
+
+After the EDA, I randomly picked variables to check their distribution graphically. Numerical one is in the appendix. Here only the Genre's distribution is showed, the rest are in appendix.
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+CD %>% ggplot(aes(as.numeric(User_Score))) + 
+   geom_density() +
+   facet_wrap(~Genre)
+
+```
+
+For linear model, I tried to find out how the Genre and Global Sales affect the User Score. Detailed summary and plots are in the appendix. The interpretation of the coefficients are: user score increases by 0.070005 as global sales increase by 1 unit and user score changes differently based on genres as global sales increase by 1 unit. 
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+lmod = lm(as.numeric(User_Score) ~ Global_Sales+ Genre, data = CD)
+
+```
+
+For multilevel model, I first tried using global sales as predictors and genre as the grouping variable to see the effect on the user score because there are a lot of groups within. From Figure 3, we could find out that genres' scores are different from each other, which means they are able to affect the user score. Also, the interpretation for global sales coefficient is the user score will increase by 0.069496 as the global sales increase by 1 unit and the user score will be 7.156153 if the global sales is 0.
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+Mmod1 = lmer(as.numeric(User_Score) ~ Global_Sales + (1|Genre),REML= FALSE,data = CD)
+CD$Mmod1 = predict(Mmod1)
+CD %>%
+  ggplot(aes(User_Count, Mmod1, color = Genre, group = Genre)) + 
+  geom_smooth(method = glm) +
+  ggtitle("Figure3: Predictions of score based on genre and global sales") +
+  labs(x="User Count", y="User Score difference", color = "Genre") 
+  
+ 
+
+```
+
+Then, I tried only the genre as the grouping variable to see the effect on the user score to do the prediction again. From Figure 4, we could find out that genres' scores are also different, which confirms the opinion from the last figure.
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+Mmod2 = lmer(as.numeric(User_Score) ~ 1 + (1|Genre),REML= FALSE,data = CD)
+CD$Mmod2 = predict(Mmod2)
+CD %>%
+  ggplot(aes(User_Count, Mmod2, color = Genre, group = Genre)) + 
+  geom_smooth(method = glm) +
+  ggtitle("Figure4: Predictions of score based on genre") +
+  labs(x="User Count", y="User Score difference", color = "Genre")
+  
+
+```
+
+Finally, I tried random slope model using global sales as predictors and genre as the grouping variable to see the effect on the user score. From Figure5, we could find out that, with a new random part in model, some user scores changes a lot such as shooter and action and some of the genres are more influential, for example, Fighting has relatively large slope which will have stronger effect even though it's sales may not be the most among them.
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+Mmod3 = lmer(as.numeric(User_Score) ~ Global_Sales + (Global_Sales|Genre),REML= FALSE,data = CD)
+CD$Mmod3 = predict(Mmod3)
+CD %>%
+  ggplot(aes(User_Count, Mmod3, color = Genre, group = Genre)) + 
+  geom_smooth(method = glm) +
+  ggtitle("Figure5: Predictions of random slope model") +
+  labs(x="User Count", y="User Score difference", color = "Genre")
+  
+
+```
+
+## Result
+According to the model output, multilevel model fits the data well. Genre and global sales are definitely influential to the user score. For global sales, it has a somewhat positive effect which will increase the user score. However, for genre, different genres yield different impacts, for example, sports genre will affect user score positively most. Things become different when random effect get involved. Difference appears to become larger, there are even genres have negative effect on user score like shooter genre. What happened is a sign that group variable is somewhat responsible for the changes.
+
+## Discussion
+It is possible that, as time goes by, genre specified users will be interested in other genres which will lead a different result because one genre may have lots of global sales but with a low-affected factor to lead a low user score.
+Except genres, there are other grouping variables like publisher, developer and ratings. User scores might be influenced differently if they are integrated to the model. 
+
+## Appendix
+
+EDA genre's distribution numerically.
+
+```{r}
+CD %>% group_by(Genre) %>% 
+  summarise(mean = mean(as.numeric(User_Score)), 
+            SD = mean(as.numeric(User_Score)))
+```
+
+
+Graphical and numerical distribution of Platform and Rating.
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+CD %>% group_by(Platform) %>% 
+  summarise(mean = mean(as.numeric(User_Score)), 
+            SD = mean(as.numeric(User_Score)))
+CD %>% ggplot(aes(as.numeric(User_Score))) + 
+   geom_density() +
+   facet_wrap(~Platform)
+```
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+CD %>% group_by(Rating) %>% 
+  summarise(mean = mean(as.numeric(User_Score)), 
+            SD = mean(as.numeric(User_Score)))
+CD %>% ggplot(aes(as.numeric(User_Score))) + 
+  geom_density() +
+  facet_wrap(~Rating)
+```
+
+Plots and summary of linear model.
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+summary(lmod)
+plot(lmod)
+```
+
+Summary for multilevel model.
+```{r}
+summary(Mmod1)
+summary(Mmod2)
+summary(Mmod3)
+```
+
