@@ -17,7 +17,7 @@ library(ggplot2)
 library(lme4)
 library(tidyverse)
 library(knitr)
-D <- read.csv("https://raw.githubusercontent.com/ZYLBU/MA678-final-project/main/Video_Games_Sales_as_at_22_Dec_2016.csv")
+D <- read.csv("https://raw.githubusercontent.com/ZYLBU/678final/main/Video_Games_Sales_as_at_22_Dec_2016.csv")
 CD = na.omit(D)
 ```
 
