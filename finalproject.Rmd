@@ -143,7 +143,7 @@ Except genres, there are other grouping variables like publisher, developer and 
 
 ## Appendix
 
-EDA genre's distribution numerically.
+Genre's numerical distribution .
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
 CD %>% group_by(Genre) %>% 
